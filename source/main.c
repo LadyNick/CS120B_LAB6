@@ -15,24 +15,30 @@
 #include "timer.h"
 #endif
 
-enum light_states{start, light1, light2, light3} light_state;
+enum light_states{start, lights} light_state;
+
+unsigned char tracker = 0x00;
 
 void Tick(){
     switch(light_state){
-	case start:
-		light_state = light1;
+	    case start:
+		light_state = lights;
 		break;
-	case light1:
-		PORTB = 0x01;
-		light_state = light2;
-		break;
-	case light2:
-		PORTB = 0x02;
-		light_state = light3;
-		break;
-	case light3: 
-		PORTB = 0x04;
-		light_state = light1;
+	case lights:
+		if(tracker == 0){
+			PORTB = 0x01;
+		}
+		if(tracker == 1){
+			PORTB = 0x02;
+		}
+		if(tracker == 2){
+			PORTB = 0X04;
+		}
+		++tracker;
+		if(tracker > 2){
+			tracker = 0;
+		}
+		light_state = lights;
 		break;
 	default:
 		break;
