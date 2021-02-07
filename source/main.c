@@ -53,6 +53,7 @@ void TimerISR(){
 	TimerFlag = 1;
 }
 
+//in our approach the C programmer does not touch this ISR, but rather TimerISR()
 ISR(TIMER1_COMPA_vect){
 	//CPU automatically calls when TCNT1 == 0CR1 (evert 1 ms per TimerOn settings)
 	_avr_timer_cntcurr--; //count down to 0 rather than up to TOP
@@ -70,10 +71,20 @@ void TimerSet(unsigned long M){
 
 int main(void) {
     /* Insert DDR and PORT initializations */
+    DDRB = 0XFF; //set port B to output
+    PORTB = 0x00; //init port B to 0s
+    TimerSet(1000);
+    TImerOn();
+    unsigned char tmpB = 0x00;
 
     /* Insert your solution below */
     while (1) {
-
+	//User code (i.e. synchSM calls)
+	tmpB = ~tmpB; //Toggle PORTB; Temporary, bad programming style
+	PORTB = tmpB;
+	while(!TimerFlag); //Wait 1 sec
+	TimerFlag = 0;
+	//Better style would use synchSM with TickSM, this exmaple just illustrates the use of the ISR and flag
     }
     return 1;
 }
