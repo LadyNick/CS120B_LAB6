@@ -15,11 +15,13 @@
 #include "timer.h"
 #endif
 
-enum count_states{init, inc_p, inc_r, dec_p, dec_r, reset_p, reset_r, release} count_state;
+enum count_states{init, inc_p, inc_r, dec_p, reset_p, reset_r, release} count_state;
 
 //unsigned char not_pina;
 unsigned char A0;
 unsigned char A1;
+unsigned char count = 0;
+unsigned char first = 0;
 
 void Tick_Count(){
 	switch (count_state){
@@ -39,17 +41,31 @@ void Tick_Count(){
 			}
 			break;
 		case inc_p:
-			if((PORTB < 0X09)){
+			if((PORTB < 0X09) && (first == 0)){
+				first = 1;
 				PORTB = PORTB + 1;
+			}
+			else if((PORTB < 0X09) && (first == 1)){
+				++count;
+				if(count == 10){
+					PORTB = PORTB + 1;
+					count = 0;
+				}
 			}
 			if( A0 && A1 ){
 				count_state = reset_p;
 			}
-			else{
-				count_state = inc_r;
+		/*	else if( A0 && !A1){
+				count_state = inc_p;
+			} */
+			else if(!A0 && !A1){
+				first = 0;
+				count = 0;
+				count_state = release;
+			//	count_state = inc_r;
 			}
 			break;
-		case inc_r: 
+		/*case inc_r: 
 			if( A0 && A1 ){
 				count_state = reset_p;
 			}
@@ -59,28 +75,28 @@ void Tick_Count(){
 			else if( !A0 && !A1 ){
 				count_state = release;
 			}
-			break;
+			break; */
 		case dec_p:
-			if((PORTB >= 1)){
-				--PORTB;
+			if((PORTB > 0) && (first == 0)){
+				PORTB = PORTB - 1;
+				first = 1;
 			}
+			else if((PORTB > 0) && (first == 1)){
+				++count;
+				if(count == 10){
+					PORTB = PORTB - 1;
+					count = 0;
+				}
+			} 
 			if( A0 && A1 ) {
 				count_state = reset_p;
 			}
-			else{
-				count_state = dec_r;
-			}
-			break;
-		case dec_r:
-			if(A0 && A1 ){
-				count_state = reset_p;
-			}
-			else if( A1 && !A0){
-				count_state = dec_r;
-			}
-			else if( !A1 && !A0){
+			else if(!A0 && !A1){
+				first = 0;
+				count = 0;
 				count_state = release;
 			}
+			break;
 		case reset_p:
 			PORTB = 0x00;
 			count_state = reset_r;
