@@ -61,8 +61,8 @@ void Tick_Count(){
 			}
 			break;
 		case dec_p:
-			if((PORTB > 0)){
-				PORTB = PORTB - 1;
+			if((PORTB >= 1)){
+				--PORTB;
 			}
 			if( A0 && A1 ) {
 				count_state = reset_p;
@@ -120,11 +120,11 @@ int main(void) {
     TimerOn();
 	
     	count_state = init;
-	PORTC = 0x07;	
+	PORTB = 0x07;	
 
     while (1) {
 	A0 = ~PINA & 0X01;
-	A1 = ~PINA & 0X02
+	A1 = ~PINA & 0X02;
 	Tick_Count();
 	while(!TimerFlag); 
 	TimerFlag = 0;
